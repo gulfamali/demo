@@ -412,23 +412,11 @@
                   deep: true,
                },
                'oldTax.allowances.lta'() {
-                  this.oldTax.total_allowances 
-                     = this.oldTax.allowances.hra
-                     + this.oldTax.allowances.lta
-                     + this.oldTax.allowances.sec_1014;
-                     
                   this.computeTaxes();
                },
                'oldTax.allowances.sec_1014'() {
-                  this.oldTax.total_allowances 
-                     = this.oldTax.allowances.hra
-                     + this.oldTax.allowances.lta
-                     + this.oldTax.allowances.sec_1014;
-                     
                   this.computeTaxes();
                }
-            },
-            computed: {
             },
             methods: {
                handleHRA() {
@@ -438,12 +426,11 @@
 
                   const hra = Math.min(rentpaid, basicpart);
                   this.oldTax.allowances.hra = Math.min(hra, this.salary.hra);
-
-                  this.oldTax.total_allowances += this.oldTax.allowances.hra;
                },
                computeTaxes() {
                   this.handleHRA();
 
+                  this.oldTax.total_allowances = this.oldTax.allowances.hra + this.oldTax.allowances.lta + this.oldTax.allowances.sec_1014;
                   this.newTax.taxableIncome = Math.max(0, this.salary.total - this.newTax.deductions.standard);   
                   this.oldTax.taxableIncome = Math.max(0, this.salary.total - this.oldTax.total_deductions - this.oldTax.total_allowances);
                   

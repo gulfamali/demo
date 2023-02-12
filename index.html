@@ -331,10 +331,10 @@
                return {
                   salary: {
                      total: 750000,
-                     basic: 0,
-                     hra: 0,
+                     basic: 350000,
+                     hra: 250000,
                      metro: 0,
-                     rentpaid: 0,
+                     rentpaid: 132000,
                   },
                   newTax: {
                      taxableIncome: 0,
@@ -369,8 +369,8 @@
                      },
                      deductions: {
                         standard: 50000,
-                        sec_80C: 0,
-                        sec_80CCD: 0,
+                        sec_80C: 150000,
+                        sec_80CCD: 30000,
                         sec_80G: 0,
                         sec_80U: 0,
                         sec_80D: 0,
@@ -396,17 +396,6 @@
                },
                'oldTax.deductions': {
                   handler(next, old) {
-                     this.oldTax.total_deductions 
-                        = this.oldTax.deductions.standard
-                        + this.oldTax.deductions.sec_80C
-                        + this.oldTax.deductions.sec_80CCD
-                        + this.oldTax.deductions.sec_80D
-                        + this.oldTax.deductions.sec_80DD
-                        + this.oldTax.deductions.sec_80E
-                        + this.oldTax.deductions.sec_80EE
-                        + this.oldTax.deductions.sec_80G
-                        + this.oldTax.deductions.sec_80U;
-                     
                      this.computeTaxes();
                   },
                   deep: true,
@@ -419,6 +408,18 @@
                }
             },
             methods: {
+               handleDeductions() {
+                  this.oldTax.total_deductions 
+                     = this.oldTax.deductions.standard
+                     + this.oldTax.deductions.sec_80C
+                     + this.oldTax.deductions.sec_80CCD
+                     + this.oldTax.deductions.sec_80D
+                     + this.oldTax.deductions.sec_80DD
+                     + this.oldTax.deductions.sec_80E
+                     + this.oldTax.deductions.sec_80EE
+                     + this.oldTax.deductions.sec_80G
+                     + this.oldTax.deductions.sec_80U;
+               },
                handleHRA() {
                   const percent = this.salary.metro ? 0.5 : 0.4;
                   const basicpart = this.salary.basic * percent;
@@ -428,6 +429,7 @@
                   this.oldTax.allowances.hra = Math.min(hra, this.salary.hra);
                },
                computeTaxes() {
+                  this.handleDeductions();
                   this.handleHRA();
 
                   this.oldTax.total_allowances = this.oldTax.allowances.hra + this.oldTax.allowances.lta + this.oldTax.allowances.sec_1014;

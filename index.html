@@ -110,8 +110,7 @@
                   </td>
                </tr>
                <tr class="row-light">
-                  <td>Total Deductions (Refer below)</td>
-                  <td class="number"></td>
+                  <td colspan="2">Total Deductions (Refer below)</td>
                   <td class="number">
                      {{ oldTax.total_deductions.toLocaleString('en-IN') }}
                   </td>
@@ -397,7 +396,7 @@
                },
                'oldTax.deductions': {
                   handler(next, old) {
-                     this.total_deductions 
+                     this.oldTax.total_deductions 
                         = this.oldTax.deductions.standard
                         + this.oldTax.deductions.sec_80C
                         + this.oldTax.deductions.sec_80CCD

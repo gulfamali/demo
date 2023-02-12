@@ -1,11 +1,514 @@
 <!DOCTYPE html>
 <html>
    <head>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.3/font/bootstrap-icons.css">
       <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-GLhlTQ8iRABdZLl6O3oVMWSktQOp6b7In1Zl3/Jr59b6EGGoI1aFkw7cmDA6j6gD" crossorigin="anonymous">
-      <title>My Cool Website</title>
+      <title>Income Tax Calculator</title>
+
+      <style>
+         th{
+            font-size: 0.9em;
+            font-weight: 600;
+         }
+         .row-section-head{
+            font-weight: 600;
+            color: #222;
+            padding-top: 1.5em !important;
+         }
+         .row-light{
+            color: #777;
+            font-size: 0.9em;
+         }
+         .number{
+            text-align: right;
+            font-family: monospace;
+         }
+         .text-right{
+            text-align: right;
+         }
+         .cinput{
+            background: #eee;
+            border: 0;
+            width: 100px;
+            text-align: right;
+         }
+         .cinput:focus-visible{
+            outline: none;
+            outline-offset: none;
+         }
+         .footer{
+            margin-top: 3em;
+            padding: 1.5em;
+         }
+         .footer p{
+            margin: 0;
+            font-size: 11px;
+         }
+         .footer a{
+            text-decoration: none;
+            color: #777;
+         }
+         input[type=number]::-webkit-inner-spin-button, 
+         input[type=number]::-webkit-outer-spin-button { 
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+            margin: 0; 
+         }
+      </style>
+      <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
    </head>
    <body>
-      <h1>Welcome to my website! ⭐️</h1>
-      <p>How was your day? 🎉</p>
+      <div class="text-bg-light text-center p-3">
+         <h1 class="h6 m-0">Income Tax Analysis</h1>
+      </div>
+      <div class="p-2" id="mainApp">
+         <table class="table table-sm m-auto" style="font-size: 0.9em; max-width: 640px;">
+            <thead>
+               <tr style="color: #777; font-size: 0.9em;">
+                  <td>#</td>
+                  <td class="text-right" width="110px">New Tax Regime</td>
+                  <td class="text-right" width="110px">Old Tax Regime</td>
+               </tr>
+            </thead>
+            <tbody>
+               <tr>
+                  <th>Total Income</th>
+                  <th class="number">
+                     <input type="number" v-model="salary.total" class="cinput" />
+                  </th>
+                  <th class="number">
+                     {{ salary.total.toLocaleString('en-IN') }}
+                  </th>
+               </tr>
+               <tr>
+                  <th>Annual Basic Pay</th>
+                  <td class="number">
+                     <input type="number" v-model="salary.basic" class="cinput" />
+                  </td>
+                  <td class="number">
+                     {{ salary.basic.toLocaleString('en-IN') }}
+                  </td>
+               </tr>
+               <tr>
+                  <th>Annual HRA</th>
+                  <td class="number">
+                     <input type="number" v-model="salary.hra" class="cinput" />
+                  </td>
+                  <td class="number">
+                     {{ salary.hra.toLocaleString('en-IN') }}
+                  </td>
+               </tr>
+               <tr class="row-light">
+                  <td>Standard Deduction</td>
+                  <td class="number">
+                     {{ newTax.deductions.standard.toLocaleString('en-IN') }}
+                  </td>
+                  <td class="number">
+                     {{ oldTax.deductions.standard.toLocaleString('en-IN') }}
+                  </td>
+               </tr>
+               <tr class="row-light">
+                  <td>Total Deductions (Refer below)</td>
+                  <td class="number"></td>
+                  <td class="number">
+                     {{ oldTax.total_deductions.toLocaleString('en-IN') }}
+                  </td>
+               </tr>
+               <tr>
+                  <th>Taxable Income</th>
+                  <td class="number">
+                     {{ newTax.taxableIncome.toLocaleString('en-IN') }}
+                  </td>
+                  <td class="number">
+                     {{ oldTax.taxableIncome.toLocaleString('en-IN') }}
+                  </td>
+               </tr>
+               <tr class="row-light">
+                  <td>Net Tax</td>
+                  <td class="number">
+                     {{ newTax.taxes.netTax.toLocaleString('en-IN') }}
+                  </td>
+                  <td class="number">
+                     {{ oldTax.taxes.netTax.toLocaleString('en-IN') }}
+                  </td>
+               </tr>
+               <tr class="row-light">
+                  <td>Education Cess</td>
+                  <td class="number">
+                     {{ newTax.taxes.eduCess.toLocaleString('en-IN') }}
+                  </td>
+                  <td class="number">
+                     {{ oldTax.taxes.eduCess.toLocaleString('en-IN') }}
+                  </td>
+               </tr>
+               <tr>
+                  <th>Total Tax</th>
+                  <th class="number">
+                     {{ newTax.taxes.total.toLocaleString('en-IN') }}
+                  </th>
+                  <td class="number">
+                     {{ oldTax.taxes.total.toLocaleString('en-IN') }}
+                  </td>
+               </tr>
+               
+               
+               <tr>
+                  <td colspan="3" class="row-section-head">Tax Breakup (Old Regime)</td>
+               </tr>
+               <tr class="row-light">
+                  <td>Upto 2.5L</td>
+                  <td colspan="2" class="number">0</td>
+               </tr>
+               <tr class="row-light">
+                  <td>2.5L - 5L (5%)</td>
+                  <td colspan="2" class="number">
+                     {{ oldTax.taxes.slab5.toLocaleString('en-IN') }}
+                  </td>
+               </tr>
+               <tr class="row-light">
+                  <td>5L - 10L (20%)</td>
+                  <td colspan="2" class="number">
+                     {{ oldTax.taxes.slab20.toLocaleString('en-IN') }}
+                  </td>
+               </tr>
+               <tr class="row-light">
+                  <td>Above 10L (30%)</td>
+                  <td colspan="2" class="number">
+                     {{ oldTax.taxes.slab30.toLocaleString('en-IN') }}
+                  </td>
+               </tr>
+               <tr>
+                  <th>Tax Rebate (87A)</th>
+                  <td colspan="2" class="number">
+                     {{ oldTax.taxes.rebate.toLocaleString('en-IN') }}
+                  </td>
+               </tr>
+
+               <tr>
+                  <td colspan="3" class="row-section-head">Tax Breakup (New Regime)</td>
+               </tr>
+               <tr class="row-light" >
+                  <td>Upto 3L</td>
+                  <td colspan="2" class="number">0</td>
+               </tr>
+               <tr class="row-light">
+                  <td>3L - 6L (5%)</td>
+                  <td colspan="2" class="number">
+                     {{ newTax.taxes.slab5.toLocaleString('en-IN') }}
+                  </td>
+               </tr>
+               <tr class="row-light">
+                  <td>6L - 9L (10%)</td>
+                  <td colspan="2" class="number">
+                     {{ newTax.taxes.slab10.toLocaleString('en-IN') }}
+                  </td>
+               </tr>
+               <tr class="row-light">
+                  <td>9L - 12L (15%)</td>
+                  <td colspan="2" class="number">
+                     {{ newTax.taxes.slab15.toLocaleString('en-IN') }}
+                  </td>
+               </tr>
+               <tr class="row-light">
+                  <td>12L - 15L (20%)</td>
+                  <td colspan="2" class="number">
+                     {{ newTax.taxes.slab20.toLocaleString('en-IN') }}
+                  </td>
+               </tr>
+               <tr class="row-light">
+                  <td>Above 15L (30%)</td>
+                  <td colspan="2" class="number">
+                     {{ newTax.taxes.slab30.toLocaleString('en-IN') }}
+                  </td>
+               </tr>
+               <tr>
+                  <th>Tax Rebate (87A)</th>
+                  <td colspan="2" class="number">
+                     {{ newTax.taxes.rebate.toLocaleString('en-IN') }}
+                  </td>
+               </tr>
+
+               <tr>
+                  <td colspan="3" class="row-section-head">Deductions</td>
+               </tr>
+               <tr class="row-light">
+                  <td colspan="2">80C (EPF, PPF, ELSS, Insurance)</td>
+                  <td class="number">
+                     <input type="number" class="cinput" v-model="oldTax.deductions.sec_80C" />
+                  </td>
+               </tr>
+               <tr class="row-light">
+                  <td colspan="2">80CCD(1B) (NPS)</td>
+                  <td class="number">
+                     <input type="number" class="cinput" v-model="oldTax.deductions.sec_80CCD" />
+                  </td>
+               </tr>
+               <tr class="row-light">
+                  <td colspan="2">80G (Donations)</td>
+                  <td class="number">
+                     <input type="number" class="cinput" v-model="oldTax.deductions.sec_80G" />
+                  </td>
+               </tr>
+               <tr class="row-light">
+                  <td colspan="2">80U (Self Disability > 40%)</td>
+                  <td class="number">
+                     <input type="number" class="cinput" v-model="oldTax.deductions.sec_80U" />
+                  </td>
+               </tr>
+               <tr class="row-light">
+                  <td colspan="2">80D (Health Checkup & Insurance)</td>
+                  <td class="number">
+                     <input type="number" class="cinput" v-model="oldTax.deductions.sec_80D" />
+                  </td>
+               </tr>
+               <tr class="row-light">
+                  <td colspan="2">80DD & 80DDB (Medical expenditure)</td>
+                  <td class="number">
+                     <input type="number" class="cinput" v-model="oldTax.deductions.sec_80DD" />
+                  </td>
+               </tr>
+               <tr class="row-light">
+                  <td colspan="2">80E (Higher education loan interest)</td>
+                  <td class="number">
+                     <input type="number" class="cinput" v-model="oldTax.deductions.sec_80E" />
+                  </td>
+               </tr>
+               <tr class="row-light">
+                  <td colspan="2">80EE (Home loan interest)</td>
+                  <td class="number">
+                     <input type="number" class="cinput" v-model="oldTax.deductions.sec_80EE" />
+                  </td>
+               </tr>
+
+               <tr>
+                  <td colspan="3" class="row-section-head">Allowances</td>
+               </tr>
+               <tr class="row-light">
+                  <td colspan="2">House Rent City</td>
+                  <td class="number">
+                     <input type="checkbox" v-model="salary.metro" /> Metro
+                  </td>
+               </tr>
+               <tr class="row-light">
+                  <td colspan="2">House Rent Paid (Annual)</td>
+                  <td class="number">
+                     <input type="number" class="cinput" v-model="salary.rentpaid" />
+                  </td>
+               </tr>
+               <tr class="row-light">
+                  <td colspan="2">10(13A) (House Rent Allowance)</td>
+                  <td class="number">
+                     {{ oldTax.allowances.hra.toLocaleString('en-IN') }}
+                  </td>
+               </tr>
+               <tr class="row-light">
+                  <td colspan="2">LTA</td>
+                  <td class="number">
+                     <input type="number" class="cinput" v-model="oldTax.allowances.lta" />
+                  </td>
+               </tr>
+               <tr class="row-light">
+                  <td colspan="2">10(14) (Various allowances)</td>
+                  <td class="number">
+                     <input type="number" class="cinput" v-model="oldTax.allowances.sec_1014" />
+                  </td>
+               </tr>
+            </tbody>
+         </table>
+      </div>
+
+      <div class="text-bg-light text-center footer">
+         <p class="text-sm">Made with &#10084; by</p>
+         <a target="_blank" href="https://in.linkedin.com/in/gulfamali">Gulfam Ali</p>
+      </div>
+
+      <script>
+         const { createApp } = Vue
+       
+         const app = createApp({
+            data() {
+               return {
+                  salary: {
+                     total: 750000,
+                     basic: 0,
+                     hra: 0,
+                     metro: 0,
+                     rentpaid: 0,
+                  },
+                  newTax: {
+                     taxableIncome: 0,
+                     total_deductions: 0,
+                     taxes: {
+                        slab5: 0,
+                        slab10: 0,
+                        slab15: 0,
+                        slab20: 0,
+                        slab30: 0,
+                        netTax: 0,
+                        eduCess: 0,
+                        total: 0,
+                        rebate: 0,
+                     },
+                     deductions: {
+                        standard: 50000,
+                     }
+                  },
+                  oldTax: {
+                     taxableIncome: 0,
+                     total_deductions: 0,
+                     total_allowances: 0,
+                     taxes: {
+                        slab5: 0,
+                        slab20: 0,
+                        slab30: 0,
+                        netTax: 0,
+                        eduCess: 0,
+                        total: 0,
+                        rebate: 0,
+                     },
+                     deductions: {
+                        standard: 50000,
+                        sec_80C: 0,
+                        sec_80CCD: 0,
+                        sec_80G: 0,
+                        sec_80U: 0,
+                        sec_80D: 0,
+                        sec_80DD: 0,
+                        sec_80E: 0,
+                        sec_80EE: 0,
+                     },
+                     allowances: {
+                        hra: 0,
+                        lta: 0,
+                        sec_1014: 0,
+                     }
+                  },
+               }
+            },
+            watch: {
+               // whenever question changes, this function will run
+               salary: {
+                  handler(newSalary, oldSalary) {
+                     this.computeTaxes();
+                  }, 
+                  deep: true 
+               },
+               'oldTax.deductions': {
+                  handler(next, old) {
+                     this.total_deductions 
+                        = this.oldTax.deductions.standard
+                        + this.oldTax.deductions.sec_80C
+                        + this.oldTax.deductions.sec_80CCD
+                        + this.oldTax.deductions.sec_80D
+                        + this.oldTax.deductions.sec_80DD
+                        + this.oldTax.deductions.sec_80E
+                        + this.oldTax.deductions.sec_80EE
+                        + this.oldTax.deductions.sec_80G
+                        + this.oldTax.deductions.sec_80U;
+                     
+                     this.computeTaxes();
+                  },
+                  deep: true,
+               },
+               'oldTax.allowances.lta'() {
+                  this.oldTax.total_allowances 
+                     = this.oldTax.allowances.hra
+                     + this.oldTax.allowances.lta
+                     + this.oldTax.allowances.sec_1014;
+                     
+                  this.computeTaxes();
+               },
+               'oldTax.allowances.sec_1014'() {
+                  this.oldTax.total_allowances 
+                     = this.oldTax.allowances.hra
+                     + this.oldTax.allowances.lta
+                     + this.oldTax.allowances.sec_1014;
+                     
+                  this.computeTaxes();
+               }
+            },
+            computed: {
+            },
+            methods: {
+               handleHRA() {
+                  const percent = this.salary.metro ? 0.5 : 0.4;
+                  const basicpart = this.salary.basic * percent;
+                  const rentpaid = Math.max(0, this.salary.rentpaid - this.salary.basic * 0.1);
+
+                  const hra = Math.min(rentpaid, basicpart);
+                  this.oldTax.allowances.hra = Math.min(hra, this.salary.hra);
+
+                  this.oldTax.total_allowances += this.oldTax.allowances.hra;
+               },
+               computeTaxes() {
+                  this.handleHRA();
+
+                  this.newTax.taxableIncome = Math.max(0, this.salary.total - this.newTax.deductions.standard);   
+                  this.oldTax.taxableIncome = Math.max(0, this.salary.total - this.oldTax.total_deductions - this.oldTax.total_allowances);
+                  
+                  for (let key in this.newTax.taxes) {
+                     this.newTax.taxes[key] = 0;
+                  }
+                  for (let key in this.oldTax.taxes) {
+                     this.oldTax.taxes[key] = 0;
+                  }
+
+                  if (this.oldTax.taxableIncome > 500000) {
+                     this.oldTax.taxes.slab5 = 250000 * 0.05;
+
+                     if(this.oldTax.taxableIncome < 1000000) {
+                        this.oldTax.taxes.slab20 = (this.oldTax.taxableIncome - 500000) * 0.2;
+                     } else {
+                        this.oldTax.taxes.slab20 = 500000 * 0.2;
+                        this.oldTax.taxes.slab30 = (this.oldTax.taxableIncome - 1000000) * 0.3;
+                     }
+                     this.oldTax.taxes.netTax = this.oldTax.taxes.slab5 + this.oldTax.taxes.slab20 + this.oldTax.taxes.slab30;
+                     this.oldTax.taxes.eduCess = this.oldTax.taxes.netTax * 0.04;
+                     this.oldTax.taxes.total = this.oldTax.taxes.netTax + this.oldTax.taxes.eduCess;
+                  } else {
+                     this.oldTax.taxes.slab5 = (this.oldTax.taxableIncome - 250000) * 0.05;
+                     this.oldTax.taxes.rebate = this.oldTax.taxes.slab5;
+                  }
+
+                  if (this.newTax.taxableIncome > 700000) {
+                     this.newTax.taxes.slab5 = 300000 * 0.05;
+
+                     if(this.newTax.taxableIncome < 900000) {
+                        this.newTax.taxes.slab10 = (this.newTax.taxableIncome - 600000) * 0.1;
+                     } else if (this.newTax.taxableIncome < 1200000) {
+                        this.newTax.taxes.slab10 = 300000 * 0.1;
+                        this.newTax.taxes.slab15 = (this.newTax.taxableIncome - 900000) * 0.15;
+                     } else if (this.newTax.taxableIncome < 1500000) {
+                        this.newTax.taxes.slab10 = 300000 * 0.1;
+                        this.newTax.taxes.slab15 = 300000 * 0.15;
+                        this.newTax.taxes.slab20 = (this.newTax.taxableIncome - 1200000) * 0.2;
+                     } else {
+                        this.newTax.taxes.slab10 = 300000 * 0.1;
+                        this.newTax.taxes.slab15 = 300000 * 0.15;
+                        this.newTax.taxes.slab20 = 300000 * 0.2;
+                        this.newTax.taxes.slab30 = (this.newTax.taxableIncome - 1500000) * 0.3;
+                     }
+
+                     this.newTax.taxes.netTax = this.newTax.taxes.slab5 + this.newTax.taxes.slab10 + this.newTax.taxes.slab15 + this.newTax.taxes.slab20 + this.newTax.taxes.slab30;
+                     this.newTax.taxes.eduCess = this.newTax.taxes.netTax * 0.04;
+                     this.newTax.taxes.total = this.newTax.taxes.netTax + this.newTax.taxes.eduCess;
+                  } else {
+                     if (this.newTax.taxableIncome > 600000) {
+                        this.newTax.taxes.slab5 = 300000 * 0.05;
+                        this.newTax.taxes.slab10 = (this.newTax.taxableIncome - 600000) * 0.1;
+                        this.newTax.taxes.rebate = this.newTax.taxes.slab5 + this.newTax.taxes.slab10;
+                     } else {
+                        this.newTax.taxes.slab5 = this.newTax.taxes.rebate = (this.newTax.taxableIncome - 300000) * 0.05;
+                     }
+                  }
+               }
+            },
+            mounted() {
+               this.computeTaxes();
+            }
+         }).mount('#mainApp');
+       </script>
    </body>
 </html>

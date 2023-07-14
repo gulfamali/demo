@@ -437,6 +437,7 @@
                },
                computeTaxes() {
                   localStorage.setItem('salary', JSON.stringify(this.salary));
+                  localStorage.setItem('oldTax', JSON.stringify(this.oldTax));
                   this.handleDeductions();
                   this.handleHRA();
 
@@ -502,7 +503,10 @@
                },
                loadState() {
                   const salary = localStorage.getItem('salary');
+                  const oldTax = localStorage.getItem('oldTax');
+
                   if (salary) this.salary = JSON.parse(salary);
+                  if (oldTax) this.oldTax = JSON.parse(oldTax);
                }
             },
             mounted() {

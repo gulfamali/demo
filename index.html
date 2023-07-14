@@ -8,6 +8,15 @@
       <title>Income Tax Calculator</title>
 
       <style>
+         .grid-box{
+            display: flex;
+            justify-content: space-between;
+            max-width: 640px;
+            margin: auto;
+         }
+         .grid-item{
+            display: grid;
+         }
          th{
             font-size: 0.9em;
             font-weight: 600;
@@ -64,9 +73,24 @@
    </head>
    <body>
       <div class="text-bg-light text-center p-3">
-         <h1 class="h6 m-0">Income Tax Analysis</h1>
+         <h1 class="h3 m-0">Income Tax Calculator</h1>
       </div>
       <div class="p-2" id="mainApp">
+         <div class="grid-box">
+            <div class="grid-item">
+               <label>Basic Pay</label>
+               <input type="number" v-model="salary.basic" class="cinput" />
+            </div>
+            <div class="grid-item">
+               <label>HRA</label>
+               <input type="number" v-model="salary.hra" class="cinput" />
+            </div>
+            <div class="grid-item">
+               <label>Total Income</label>
+               <input type="number" v-model="salary.total" class="cinput" />
+            </div>
+         </div>
+         <br/>
          <table class="table table-sm m-auto" style="font-size: 0.9em; max-width: 640px;">
             <thead>
                <tr style="color: #777; font-size: 0.9em;">
@@ -76,33 +100,6 @@
                </tr>
             </thead>
             <tbody>
-               <tr>
-                  <th>Total Income</th>
-                  <th class="number">
-                     <input type="number" v-model="salary.total" class="cinput" />
-                  </th>
-                  <th class="number">
-                     {{ salary.total.toLocaleString('en-IN') }}
-                  </th>
-               </tr>
-               <tr>
-                  <th>Annual Basic Pay</th>
-                  <td class="number">
-                     <input type="number" v-model="salary.basic" class="cinput" />
-                  </td>
-                  <td class="number">
-                     {{ salary.basic.toLocaleString('en-IN') }}
-                  </td>
-               </tr>
-               <tr>
-                  <th>Annual HRA</th>
-                  <td class="number">
-                     <input type="number" v-model="salary.hra" class="cinput" />
-                  </td>
-                  <td class="number">
-                     {{ salary.hra.toLocaleString('en-IN') }}
-                  </td>
-               </tr>
                <tr class="row-light">
                   <td>Standard Deduction</td>
                   <td class="number">
@@ -193,43 +190,50 @@
                </tr>
                <tr class="row-light" >
                   <td>Upto 3L</td>
-                  <td colspan="2" class="number">0</td>
+                  <td class="number">0</td>
+                  <td class="number"></td>
                </tr>
                <tr class="row-light">
                   <td>3L - 6L (5%)</td>
-                  <td colspan="2" class="number">
+                  <td class="number">
                      {{ newTax.taxes.slab5.toLocaleString('en-IN') }}
                   </td>
+                  <td class="number"></td>
                </tr>
                <tr class="row-light">
                   <td>6L - 9L (10%)</td>
-                  <td colspan="2" class="number">
+                  <td class="number">
                      {{ newTax.taxes.slab10.toLocaleString('en-IN') }}
                   </td>
+                  <td class="number"></td>
                </tr>
                <tr class="row-light">
                   <td>9L - 12L (15%)</td>
-                  <td colspan="2" class="number">
+                  <td class="number">
                      {{ newTax.taxes.slab15.toLocaleString('en-IN') }}
                   </td>
+                  <td class="number"></td>
                </tr>
                <tr class="row-light">
                   <td>12L - 15L (20%)</td>
-                  <td colspan="2" class="number">
+                  <td class="number">
                      {{ newTax.taxes.slab20.toLocaleString('en-IN') }}
                   </td>
+                  <td class="number"></td>
                </tr>
                <tr class="row-light">
                   <td>Above 15L (30%)</td>
-                  <td colspan="2" class="number">
+                  <td class="number">
                      {{ newTax.taxes.slab30.toLocaleString('en-IN') }}
                   </td>
+                  <td class="number"></td>
                </tr>
                <tr>
                   <th>Tax Rebate (87A)</th>
-                  <td colspan="2" class="number">
+                  <td class="number">
                      {{ newTax.taxes.rebate.toLocaleString('en-IN') }}
                   </td>
+                  <td class="number"></td>
                </tr>
 
                <tr>
@@ -432,6 +436,7 @@
                   this.oldTax.allowances.hra = Math.min(hra, this.salary.hra);
                },
                computeTaxes() {
+                  localStorage.setItem('salary', JSON.stringify(this.salary));
                   this.handleDeductions();
                   this.handleHRA();
 
@@ -494,9 +499,14 @@
                         this.newTax.taxes.slab5 = this.newTax.taxes.rebate = (this.newTax.taxableIncome - 300000) * 0.05;
                      }
                   }
+               },
+               loadState() {
+                  const salary = localStorage.getItem('salary');
+                  if (salary) this.salary = JSON.parse(salary);
                }
             },
             mounted() {
+               this.loadState();
                this.computeTaxes();
             }
          }).mount('#mainApp');

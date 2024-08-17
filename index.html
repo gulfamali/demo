@@ -127,7 +127,7 @@
                <tr class="row-light">
                   <td>Net Tax</td>
                   <td class="number">
-                     {{ newTax.taxes.netTax.toLocaleString('en-IN') }}
+                     {{ newTax.netTax.toLocaleString('en-IN') }}
                   </td>
                   <td class="number">
                      {{ oldTax.taxes.netTax.toLocaleString('en-IN') }}
@@ -136,7 +136,7 @@
                <tr class="row-light">
                   <td>Education Cess</td>
                   <td class="number">
-                     {{ newTax.taxes.eduCess.toLocaleString('en-IN') }}
+                     {{ newTax.eduCess.toLocaleString('en-IN') }}
                   </td>
                   <td class="number">
                      {{ oldTax.taxes.eduCess.toLocaleString('en-IN') }}
@@ -145,7 +145,7 @@
                <tr>
                   <th>Total Tax</th>
                   <th class="number">
-                     {{ newTax.taxes.total.toLocaleString('en-IN') }}
+                     {{ newTax.total.toLocaleString('en-IN') }}
                   </th>
                   <td class="number">
                      {{ oldTax.taxes.total.toLocaleString('en-IN') }}
@@ -188,27 +188,41 @@
                <tr>
                   <td colspan="3" class="row-section-head">Tax Breakup (New Regime)</td>
                </tr>
-               <tr class="row-light" >
+               
+               <tr class="row-light" v-for="tax in newTax.slabs">
+                  <td>{{ tax.label }}</td>
+                  <td class="number">{{ tax.tax.toLocaleString('en-IN') }}</td>
+                  <td class="number"></td>
+               </tr>
+               <tr> 
+                  <th>Tax Rebate (87A)</th>
+                  <td class="number">
+                     {{ newTax.rebate.toLocaleString('en-IN') }}
+                  </td>
+                  <td class="number"></td>
+               </tr> 
+               
+               <!-- <tr class="row-light" >
                   <td>Upto 3L</td>
                   <td class="number">0</td>
                   <td class="number"></td>
                </tr>
                <tr class="row-light">
-                  <td>3L - 6L (5%)</td>
+                  <td>3L - 7L (5%)</td>
                   <td class="number">
                      {{ newTax.taxes.slab5.toLocaleString('en-IN') }}
                   </td>
                   <td class="number"></td>
                </tr>
                <tr class="row-light">
-                  <td>6L - 9L (10%)</td>
+                  <td>7L - 10L (10%)</td>
                   <td class="number">
                      {{ newTax.taxes.slab10.toLocaleString('en-IN') }}
                   </td>
                   <td class="number"></td>
                </tr>
                <tr class="row-light">
-                  <td>9L - 12L (15%)</td>
+                  <td>10L - 12L (15%)</td>
                   <td class="number">
                      {{ newTax.taxes.slab15.toLocaleString('en-IN') }}
                   </td>
@@ -227,14 +241,7 @@
                      {{ newTax.taxes.slab30.toLocaleString('en-IN') }}
                   </td>
                   <td class="number"></td>
-               </tr>
-               <tr>
-                  <th>Tax Rebate (87A)</th>
-                  <td class="number">
-                     {{ newTax.taxes.rebate.toLocaleString('en-IN') }}
-                  </td>
-                  <td class="number"></td>
-               </tr>
+               </tr> -->
 
                <tr>
                   <td colspan="3" class="row-section-head">Deductions</td>
@@ -358,8 +365,20 @@
                         rebate: 0,
                      },
                      deductions: {
-                        standard: 50000,
-                     }
+                        standard: 75000,
+                     },
+                     slabs: [
+                        { label: 'Upto 3L', min: 0, max: 300000, rate: 0, tax: 0 },
+                        { label: '3L - 7L (5%)', min: 300000, max: 700000, rate: 0.05, tax: 0 },
+                        { label: '7L - 10L (10%)', min: 700000, max: 1000000, rate: 0.1, tax: 0 },
+                        { label: '10L - 12L (15%)', min: 1000000, max: 1200000, rate: 0.15, tax: 0 },
+                        { label: '12L - 15L (20%)', min: 1200000, max: 1500000, rate: 0.2, tax: 0 },
+                        { label: 'Above 15L (30%)', min: 1500000, max: Infinity, rate: 0.3, tax: 0 },
+                     ],
+                     netTax: 0,
+                     eduCess: 0,
+                     total: 0,
+                     rebate: 0,
                   },
                   oldTax: {
                      taxableIncome: 0,
@@ -438,16 +457,36 @@
                computeTaxes() {
                   localStorage.setItem('salary', JSON.stringify(this.salary));
                   localStorage.setItem('oldTax', JSON.stringify(this.oldTax));
+                  this.oldRegimeTax();
+                  this.newRegimeTax();
+               },
+               newRegimeTax() {
+                  this.newTax.taxableIncome = Math.max(0, this.salary.total - this.newTax.deductions.standard);
+
+                  this.newTax.slabs.forEach(slab => {
+                     slab.tax = 0;
+                     if (this.newTax.taxableIncome < slab.min) return;
+                     slab.tax = (Math.min(slab.max, this.newTax.taxableIncome) - slab.min) * slab.rate;
+                  });
+
+                  this.newTax.rebate = 0;
+                  this.newTax.eduCess = 0;
+                  this.newTax.total = 0;
+
+                  this.newTax.netTax = this.newTax.slabs.reduce((tax, slab) => tax + slab.tax, 0);
+                  if (this.newTax.taxableIncome <= 700000) this.newTax.rebate = this.newTax.netTax;
+                  else {
+                     this.newTax.eduCess = this.newTax.netTax * 0.04;
+                     this.newTax.total = this.newTax.netTax + this.newTax.eduCess;
+                  }                
+               },
+               oldRegimeTax() {
                   this.handleDeductions();
                   this.handleHRA();
 
-                  this.oldTax.total_allowances = this.oldTax.allowances.hra + this.oldTax.allowances.lta + this.oldTax.allowances.sec_1014;
-                  this.newTax.taxableIncome = Math.max(0, this.salary.total - this.newTax.deductions.standard);   
+                  this.oldTax.total_allowances = this.oldTax.allowances.hra + this.oldTax.allowances.lta + this.oldTax.allowances.sec_1014;   
                   this.oldTax.taxableIncome = Math.max(0, this.salary.total - this.oldTax.total_deductions - this.oldTax.total_allowances);
-                  
-                  for (let key in this.newTax.taxes) {
-                     this.newTax.taxes[key] = 0;
-                  }
+
                   for (let key in this.oldTax.taxes) {
                      this.oldTax.taxes[key] = 0;
                   }
@@ -467,38 +506,6 @@
                   } else {
                      this.oldTax.taxes.slab5 = (this.oldTax.taxableIncome - 250000) * 0.05;
                      this.oldTax.taxes.rebate = this.oldTax.taxes.slab5;
-                  }
-
-                  if (this.newTax.taxableIncome > 700000) {
-                     this.newTax.taxes.slab5 = 300000 * 0.05;
-
-                     if(this.newTax.taxableIncome < 900000) {
-                        this.newTax.taxes.slab10 = (this.newTax.taxableIncome - 600000) * 0.1;
-                     } else if (this.newTax.taxableIncome < 1200000) {
-                        this.newTax.taxes.slab10 = 300000 * 0.1;
-                        this.newTax.taxes.slab15 = (this.newTax.taxableIncome - 900000) * 0.15;
-                     } else if (this.newTax.taxableIncome < 1500000) {
-                        this.newTax.taxes.slab10 = 300000 * 0.1;
-                        this.newTax.taxes.slab15 = 300000 * 0.15;
-                        this.newTax.taxes.slab20 = (this.newTax.taxableIncome - 1200000) * 0.2;
-                     } else {
-                        this.newTax.taxes.slab10 = 300000 * 0.1;
-                        this.newTax.taxes.slab15 = 300000 * 0.15;
-                        this.newTax.taxes.slab20 = 300000 * 0.2;
-                        this.newTax.taxes.slab30 = (this.newTax.taxableIncome - 1500000) * 0.3;
-                     }
-
-                     this.newTax.taxes.netTax = this.newTax.taxes.slab5 + this.newTax.taxes.slab10 + this.newTax.taxes.slab15 + this.newTax.taxes.slab20 + this.newTax.taxes.slab30;
-                     this.newTax.taxes.eduCess = this.newTax.taxes.netTax * 0.04;
-                     this.newTax.taxes.total = this.newTax.taxes.netTax + this.newTax.taxes.eduCess;
-                  } else {
-                     if (this.newTax.taxableIncome > 600000) {
-                        this.newTax.taxes.slab5 = 300000 * 0.05;
-                        this.newTax.taxes.slab10 = (this.newTax.taxableIncome - 600000) * 0.1;
-                        this.newTax.taxes.rebate = this.newTax.taxes.slab5 + this.newTax.taxes.slab10;
-                     } else {
-                        this.newTax.taxes.slab5 = this.newTax.taxes.rebate = (this.newTax.taxableIncome - 300000) * 0.05;
-                     }
                   }
                },
                loadState() {
